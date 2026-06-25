@@ -14,7 +14,7 @@
             1.0
         ]
     },
-    "detector": "SIFT",
+    "detector": "dino_vits16:16",
     "ransac": true,
     "checkpoint": "checkpoints/cns.pth",
     "device": "cuda:0",

@@ -13,6 +13,10 @@ except Exception as e:
           "please follow instructions in README.md to install it.")
 from ..frontend.utils import FrontendConcatWrapper, show_corr
 
+# --- ADDED: Import DINOFrontend ---
+from ..frontend.dino_frontend import DINOFrontend
+# ----------------------------------
+
 from ..utils.perception import CameraIntrinsic
 from ..utils.visualize import show_graph, show_keypoints
 from .controller import GraphVSController, IBVSController, ImageVSController
@@ -37,6 +41,10 @@ def get_frontend(intrinsic: CameraIntrinsic, detectors: str, ransac=True):
         config = config.strip()
         if config.lower().startswith("superglue"):
             frontends.append(SuperGlue(intrinsic, config, ransac=ransac))
+        # --- ADDED: Support for DINO frontend ---
+        elif config.lower().startswith("dino"):
+            frontends.append(DINOFrontend(intrinsic, config, ransac=ransac))
+        # ----------------------------------------
         else:
             frontends.append(Classic(intrinsic, config, ransac=ransac))
     
@@ -166,6 +174,7 @@ class CorrespondenceBasedPipeline(object):
             # add numpy image for SSIM stop criterion afterwards
             setattr(data, "cur_img", image)
             setattr(data, "tar_img", corr.tar_img)
+            setattr(data, "corr", corr)
 
         timing["total_time"] = timing["frontend_time"] + timing["backend_time"]
         return vel, data, timing

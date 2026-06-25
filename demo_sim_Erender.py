@@ -1,5 +1,7 @@
 import torch
 import numpy as np
+import cv2
+from cns.frontend.utils import plot_corr
 from cns.utils.perception import CameraIntrinsic
 from cns.benchmark.stop_policy import PixelStopPolicy
 from cns.benchmark.environment import BenchmarkEnvRender
@@ -12,17 +14,17 @@ def set_seed(seed=2023):
 
 
 def run_demo():
-    # pipeline = CorrespondenceBasedPipeline.from_file("pipeline.json")
-    pipeline = CorrespondenceBasedPipeline(
-        detector="AKAZE",
-        # detector="SuperGlue:0123",
-        # ckpt_path="checkpoints/cns.pth",
-        ckpt_path="checkpoints/cns_state_dict.pth",
-        intrinsic=CameraIntrinsic.default(),
-        device="cuda:0",
-        ransac=True,
-        vis=VisOpt.MATCH|VisOpt.GRAPH
-    )
+    pipeline = CorrespondenceBasedPipeline.from_file("pipeline.json")
+    # pipeline = CorrespondenceBasedPipeline(
+    #     detector="AKAZE",
+    #     # detector="SuperGlue:0123",
+    #     # ckpt_path="checkpoints/cns.pth",
+    #     ckpt_path="checkpoints/cns_state_dict.pth",
+    #     intrinsic=CameraIntrinsic.default(),
+    #     device="cuda:0",
+    #     ransac=True,
+    #     vis=VisOpt.NO
+    # )
     stop_policy = PixelStopPolicy(waiting_time=0.5, conduct_thresh=5e-3)
     env = BenchmarkEnvRender(scale=1, section="A")
 
@@ -33,7 +35,7 @@ def run_demo():
         "desired_pose": [], 
         "steps": []
     }
-    for i in range(len(env)):
+    for i in range(min(2, len(env))):
         env.clear_debug_items()
         
         tar_img = env.init(i)  # uint8, bgr image
@@ -44,9 +46,30 @@ def run_demo():
         pipeline.set_target(tar_img, dist_scale=tPo_norm)
         stop_policy.reset()
 
+        out_file = f'servo_demo_round_{i+1}.mp4'
+        fps = 20
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        video_writer = None
+
         while True:
             cur_img = env.observation()  # uint8, bgr image
             vel, data, timing = pipeline.get_control_rate(cur_img)
+            
+            # Record frame with keypoints
+            if data is not None and hasattr(data, "corr"):
+                frame = plot_corr(data.corr, show_keypoints=True)
+            else:
+                tar_img_display = tar_img.copy()
+                cv2.putText(tar_img_display, "Target", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                cur_img_display = cur_img.copy()
+                cv2.putText(cur_img_display, "Current", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                frame = np.concatenate((tar_img_display, cur_img_display), axis=1)
+
+            if video_writer is None:
+                h, w = frame.shape[:2]
+                video_writer = cv2.VideoWriter(out_file, fourcc, fps, (w, h))
+                
+            video_writer.write(frame)
             need_stop = (
                 stop_policy(data, env.steps*env.dt) or 
                 env.exceeds_maximum_steps() or
@@ -63,6 +86,11 @@ def run_demo():
         print("[INFO] Steps: {}/{}".format(env.steps, env.max_steps))
         env.print_pose_err()
         print("-"*80)
+        
+        # Keep showing the final successful frame for 2 seconds
+        for _ in range(fps * 2):
+            video_writer.write(frame)
+        video_writer.release()
 
         results["gid"].append(env.global_indices[i])
         results["initial_pose"].append(env.initial_wcT)

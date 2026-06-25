@@ -186,7 +186,7 @@ class Frame(object):
     def __init__(self, rgb, depth, intrinsic, extrinsic=None):
         self.rgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(
             color=o3d.geometry.Image(rgb),
-            depth=o3d.geometry.Image(depth),
+            depth=o3d.geometry.Image(np.asarray(depth, dtype=np.float32)),
             depth_scale=1.0,
             depth_trunc=2.0,
             convert_rgb_to_intensity=False
