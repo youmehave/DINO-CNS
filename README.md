@@ -1,6 +1,15 @@
-# CNS Training and Inference Demos
+# CNS + DINO: Correspondence Encoded Neural Image Servo with DINO Frontend
+
+> **Acknowledgement**  
+> This project is built upon the excellent work of **[CNS: Correspondence Encoded Neural Image Servo Policy](https://github.com/hhcaz/CNS)** (Chen et al., 2023). All original CNS model architecture, training pipeline, and evaluation benchmarks remain intact. Our contributions focus on integrating **[DINO/DINOv2](https://github.com/facebookresearch/dino)** (Caron et al., 2021) as a frontend detector and extending the temporal modeling with Transformer-based memory — see `cns/ablation/` for all additions.
+>
+> 🙏 Thanks to the CNS authors for open-sourcing their work, and to the DINO team at Facebook Research for the self-supervised vision transformer models.
+
+---
 
 ## Introduction
+
+*This is the original CNS introduction, preserved verbatim from the upstream repository.*
 
 This is the official implementation of our paper "CNS: Correspondence Encoded Neural Image Servo Policy". We present a graph neural network based solution for image servo utilizing explicit keypoints correspondence obtained from any detector-based feature matching methods, such as SIFT, AKAZE, ORB, SuperGlue and etc. 
 
@@ -191,9 +200,14 @@ Please follow the example script in `cns/benchmark/tests.py` to prepare checkpoi
 
 ---
 
-## Extended: New Model Variants & DINO Adaptation
+## Extended: Our Improvements on CNS
 
-> The following sections document extensions added for DINO frontend support and Transformer architecture experiments. These do not modify the original CNS codebase — all additions are in `cns/ablation/`.
+> The following sections document the extensions we have made on top of the original CNS:
+> - **DINO/DINOv2 frontend** for dense semantic feature matching
+> - **GraphVS_Transformer** with MultiheadAttention temporal memory
+> - **DINO fine-tuning pipeline** for domain adaptation
+>
+> All additions are in `cns/ablation/` and `cns/frontend/dino_*` — the original CNS codebase remains unmodified.
 
 ### Environment Setup Summary
 
@@ -327,7 +341,7 @@ We use the following repositories in this project:
 
 ## BibTex Citation
 
-If you found it helpful to you, please consider citing:
+If you found it helpful to you, please consider citing the original CNS paper and DINO:
 
 ```
 @misc{chen2023cns,
@@ -337,5 +351,13 @@ If you found it helpful to you, please consider citing:
       eprint={2309.09047},
       archivePrefix={arXiv},
       primaryClass={cs.RO}
+}
+
+@inproceedings{caron2021dino,
+      title={Emerging Properties in Self-Supervised Vision Transformers},
+      author={Mathilde Caron and Hugo Touvron and Ishan Misra and Herv\'e J\'egou 
+              and Julien Mairal and Piotr Bojanowski and Armand Joulin},
+      booktitle={ICCV},
+      year={2021}
 }
 ```
