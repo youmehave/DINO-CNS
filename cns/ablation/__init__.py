@@ -6,6 +6,7 @@ from .structure.graph_vs_simple_gru import GraphVS_SimpleGRU
 from .structure.graph_vs_wo_gru import GraphVS_woGRU
 from .ibvs.raft_ibvs import RaftIBVS
 from .ibvs.ibvs import IBVS
+from .temporal_transformer.graph_vs_transformer import GraphVS_Transformer
 
 
 __all__ = [
@@ -17,5 +18,6 @@ __all__ = [
     "GraphVS_woGRU",
     "RaftIBVS",
     "IBVS",
+    "GraphVS_Transformer",
 ]
 
